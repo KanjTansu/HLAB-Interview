@@ -5,8 +5,7 @@ config();
 
 const configService = new ConfigService();
 
-const AppDataSource = new DataSource({
-    type: 'postgres',
+export const getDBConfig = (configService: ConfigService) => ({
     ...(configService.get('POSTGRES_SCHEMA') && { schema: configService.get('POSTGRES_SCHEMA') }),
     host: configService.get('POSTGRES_HOST'),
     port: +configService.get('POSTGRES_PORT'),
@@ -20,5 +19,7 @@ const AppDataSource = new DataSource({
     migrations: ['src/migrations/*-migration.ts'],
     migrationsRun: false,
 });
+
+const AppDataSource = new DataSource({ type: 'postgres', ...getDBConfig(configService) });
 
 export default AppDataSource;
