@@ -13,13 +13,10 @@ export class ProductTranslation {
     @Column({ name: 'name', type: 'varchar', length: 255 })
     name: string;
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ name: 'description', nullable: true, type: 'text' })
     description: string;
 
     @ManyToOne(() => Product, (product) => product.translations, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
     product: Product;
-
-    @Column({ name: 'search_vector', type: 'tsvector', nullable: true })
-    searchVector?: string;
 }

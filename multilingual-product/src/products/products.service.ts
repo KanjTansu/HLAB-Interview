@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ListProductDto } from './dto/list-product.dto';
 import { ListResponse } from './interfaces/response';
@@ -13,18 +13,24 @@ export class ProductsService {
         private productRepo: Repository<Product>,
     ) {}
 
-    async searchProducts({ lang, search, page, limit }: ListProductDto): Promise<ListResponse<Product[]>> {
+    async searchProducts({ search, page, limit }: ListProductDto): Promise<ListResponse<Product[]>> {
         limit = limit == 0 ? 10 : limit;
         const skip = limit * (page - 1) < 0 ? 0 : limit * (page - 1);
 
-        const query = this.productRepo
-            .createQueryBuilder('p')
-            .leftJoinAndSelect('p.translations', 't', 't.languageCode = :lang', { lang })
-            .where("to_tsvector(t.languageCode, t.name || ' ' || t.description) @@ plainto_tsquery(:lang, :search)", { lang, search })
-            .skip(skip)
-            .take(limit);
-
-        const [totalData, totalCount] = await query.getManyAndCount();
+        const whereCondition = search
+            ? [{ translations: { name: ILike(`%${search}%`) } }, { translations: { description: ILike(`%${search}%`) } }]
+            : {};
+        const [allSearch, totalCount] = await this.productRepo.findAndCount({
+            take: limit,
+            skip,
+            where: whereCondition,
+            relations: { translations: true },
+        });
+        if (totalCount === 0) return { totalData: [], totalCount: 0 };
+        const totalData = await this.productRepo.find({
+            where: { id: In(allSearch.map(({ id }) => id)) },
+            relations: { translations: true },
+        });
         return { totalData, totalCount };
     }
 

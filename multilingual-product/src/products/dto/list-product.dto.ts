@@ -1,12 +1,9 @@
-import { IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
-import { LanguageCode } from '../enums/language.enum';
+import { IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class ListProductDto {
+    @IsOptional()
     @IsString()
-    search: string;
-
-    @IsEnum(LanguageCode)
-    lang: LanguageCode;
+    search?: string;
 
     @IsOptional()
     @IsNumber()

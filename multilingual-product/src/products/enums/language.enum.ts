@@ -1,6 +1,6 @@
 export enum LanguageCode {
-    EN = 'en-US',
-    TH = 'th-TH',
+    EN = 'en',
+    TH = 'th',
     ZH = 'zh',
     // Add more language codes here to support more languages
 }

@@ -12,12 +12,12 @@ export class Product {
     @OneToMany(() => ProductTranslation, (translation) => translation.product, { cascade: true })
     translations: ProductTranslation[];
 
-    @CreateDateColumn({ type: 'timestamptz' })
+    @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
     readonly createdAt: Date;
 
-    @UpdateDateColumn({ type: 'timestamptz' })
+    @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
     readonly updatedAt: Date;
 
-    @DeleteDateColumn({ type: 'timestamptz' })
+    @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz' })
     deletedAt: Date;
 }
