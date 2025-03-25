@@ -2,22 +2,15 @@
 
 Use for HLAB Pre-Assessment only
 
-### 3. Design and develop two APIs using NestJS and Postgres with the following specifications:
+# Back-end Questions
 
-1. Create a Multilingual Product API: Develop an API that allows for the creation of products, each with attributes for name and description that support multiple languages.
-2. Multilingual Product Search API: Implement an API that enables searching for products by name in any language and returns results in a paginated format.
+## 1. Design new API for feature that require data from 3 microservices:
 
-#### Additional Requirements:
+### Answer
 
-• Validation: Outline how you will validate data inputs in both APIs to ensure data
-integrity.
+- Use Asynchronous Event-Driven Aggregation by using microservices transport such as Redis Pub/Sub
 
-• Database Design: Describe the database schema and the approach you will use to
-handle multilingual support for product information.
-
-• Testing Strategy: Explain your strategy for testing these APIs, including how you will handle unit tests, integration tests, and any end-to-end testing considerations.
-
-Please provide a detailed explanation of your design decisions for each of these aspects.
+## 3. Design and develop two APIs using NestJS and Postgres:
 
 ### Answer
 
@@ -368,6 +361,50 @@ describe('AppController (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+});
+```
+
+# React Questions
+
+## 1. UseCallback ใช้ทำอะไร
+
+### Answer
+
+- ใช้สำหรับ stored function
+- ถูกเรียกอีกครั้งเมื่อสั่ง Call ฟังก์ชันและค่าใน deps มีการเปลี่ยนแปลง
+
+## 2. Write a unit test for the UserProfile React component
+
+### Answer
+
+```jsx
+describe('UserProfile Component', () => {
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
+
+  it('displays user data after successful fetch', async () => {
+    const mockUser = { name: 'John Doe', email: 'john@example.com' };
+    fetchMock.mockResponseOnce(JSON.stringify(mockUser));
+
+    render(<UserProfile userId={1} />);
+
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+
+    await waitFor(() =>
+      expect(screen.getByText(mockUser.name)).toBeInTheDocument()
+    );
+    expect(screen.getByText(`Email: ${mockUser.email}`)).toBeInTheDocument();
+  });
+
+  it('displays an error message if fetch fails', async () => {
+    fetchMock.mockReject(new Error('Failed to fetch user data'));
+
+    render(<UserProfile userId={1} />);
+
+    await waitFor(() => expect(screen.getByText(/error/i)).toBeInTheDocument());
+    expect(screen.getByText(/Failed to fetch user data/i)).toBeInTheDocument();
   });
 });
 ```
