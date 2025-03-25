@@ -1,26 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsController } from './products.controller';
-import { ProductsService } from './products.service';
+
 import { CreateProductDto } from './dto/create-product.dto';
 import { LanguageCode } from './enums/language.enum';
-import { Product } from './entities/product.entity';
-import { v4 as uuidv4 } from 'uuid';
-import { plainToInstance } from 'class-transformer';
-import { ListProductDto } from './dto/list-product.dto';
-import { validate } from 'class-validator';
+
+import { ProductsModule } from './products.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { getDBConfig } from '../config/typeorm.config';
 
 describe('ProductsController', () => {
     let controller: ProductsController;
 
-    const mockProductsService = {
-        searchProducts: jest.fn(),
-        createProduct: jest.fn(),
-    };
-
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            controllers: [ProductsController],
-            providers: [{ provide: ProductsService, useValue: mockProductsService }],
+            imports: [
+                TypeOrmModule.forRootAsync({
+                    imports: [ConfigModule],
+                    inject: [ConfigService],
+                    useFactory: (config: ConfigService) => ({ type: 'postgres', ...getDBConfig(config) }),
+                }),
+                ProductsModule,
+            ],
         }).compile();
 
         controller = module.get<ProductsController>(ProductsController);
@@ -48,55 +49,13 @@ describe('ProductsController', () => {
                 ],
             };
 
-            const mockCreatedProduct = { id: uuidv4(), ...productDto, createdAt: new Date() } as Product;
-            jest.spyOn(mockProductsService, 'createProduct').mockReturnValue(mockCreatedProduct);
+            const product = await controller.createProduct(productDto);
+            expect(product.id).toBeDefined();
 
-            const result = await controller.createProduct(productDto);
+            const productSearched = await controller.searchProducts({ search: 'test', page: 1, limit: 1 });
+            expect(productSearched.totalData.find((product) => product.sku === 'SKU-999')).toBeTruthy();
 
-            expect(mockProductsService.createProduct).toHaveBeenCalled();
-            expect(mockProductsService.createProduct).toHaveBeenCalledWith(productDto);
-
-            expect(result).toEqual(mockCreatedProduct);
-        });
-
-        it('Create product with unaccepted language code', async () => {
-            const productDto = {
-                sku: 'SKU-999',
-                translations: [
-                    {
-                        languageCode: 'JP',
-                        name: 'Test Product',
-                        description: 'Just a test',
-                    },
-                ],
-            };
-
-            const productDtoInstance = plainToInstance(CreateProductDto, productDto);
-            const errors = await validate(productDtoInstance);
-            expect(errors.length).toBeGreaterThan(0);
-        });
-    });
-
-    describe('Search Products', () => {
-        it('list => should list product by searching and return with pagination format', async () => {
-            // arrange
-            const searchParams: ListProductDto = {
-                search: 'laptop',
-                page: 1,
-                limit: 10,
-            };
-
-            const mockProducts = [{ id: 1, name: 'Laptop', description: 'A good laptop' }];
-            jest.spyOn(mockProductsService, 'searchProducts').mockReturnValue({ totalData: mockProducts, totalCount: 1 });
-
-            // act
-            const result = await controller.searchProducts(searchParams);
-
-            // assert
-            expect(mockProductsService.searchProducts).toHaveBeenCalled();
-            expect(mockProductsService.searchProducts).toHaveBeenCalledWith(searchParams);
-
-            expect(result).toEqual({ totalData: mockProducts, totalCount: 1 });
+            await controller.deleteTestProduct(productDto.sku);
         });
     });
 });

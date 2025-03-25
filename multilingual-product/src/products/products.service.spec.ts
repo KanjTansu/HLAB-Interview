@@ -7,6 +7,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { LanguageCode } from './enums/language.enum';
 import { v4 as uuidv4 } from 'uuid';
 import { ListProductDto } from './dto/list-product.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 describe('ProductsService', () => {
     let service: ProductsService;
@@ -31,28 +33,47 @@ describe('ProductsService', () => {
         expect(service).toBeDefined();
     });
 
-    it('Create product', async () => {
-        const productDto: CreateProductDto = {
-            sku: 'SKU-999',
-            translations: [
-                {
-                    languageCode: LanguageCode.EN,
-                    name: 'Test Product',
-                    description: 'Just a test',
-                },
-                {
-                    languageCode: LanguageCode.TH,
-                    name: 'สินค้าเทสต์',
-                    description: 'รายละเอียด',
-                },
-            ],
-        };
-        const mockCreatedProduct = { id: uuidv4(), ...productDto, createdAt: new Date() } as Product;
-        jest.spyOn(repository, 'save').mockResolvedValue(mockCreatedProduct);
+    describe('Create product', () => {
+        it('Create product', async () => {
+            const productDto: CreateProductDto = {
+                sku: 'SKU-999',
+                translations: [
+                    {
+                        languageCode: LanguageCode.EN,
+                        name: 'Test Product',
+                        description: 'Just a test',
+                    },
+                    {
+                        languageCode: LanguageCode.TH,
+                        name: 'สินค้าเทสต์',
+                        description: 'รายละเอียด',
+                    },
+                ],
+            };
+            const mockCreatedProduct = { id: uuidv4(), ...productDto, createdAt: new Date() } as Product;
+            jest.spyOn(repository, 'save').mockResolvedValue(mockCreatedProduct);
 
-        const result = await service.createProduct(productDto);
-        expect(result).toEqual(mockCreatedProduct);
-        expect(repository.save).toHaveBeenCalledWith({ ...productDto });
+            const result = await service.createProduct(productDto);
+            expect(result).toEqual(mockCreatedProduct);
+            expect(repository.save).toHaveBeenCalledWith({ ...productDto });
+        });
+
+        it('Create product with unaccepted language code', async () => {
+            const productDto = {
+                sku: 'SKU-999',
+                translations: [
+                    {
+                        languageCode: 'JP',
+                        name: 'Test Product',
+                        description: 'Just a test',
+                    },
+                ],
+            };
+
+            const productDtoInstance = plainToInstance(CreateProductDto, productDto);
+            const errors = await validate(productDtoInstance);
+            expect(errors.length).toBeGreaterThan(0);
+        });
     });
 
     describe('Search products', () => {

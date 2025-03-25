@@ -37,4 +37,8 @@ export class ProductsService {
     async createProduct(createProductDTO: CreateProductDto): Promise<Product> {
         return await this.productRepo.save(createProductDTO);
     }
+
+    async deleteProduct(sku: string): Promise<void> {
+        await this.productRepo.delete({ sku });
+    }
 }
