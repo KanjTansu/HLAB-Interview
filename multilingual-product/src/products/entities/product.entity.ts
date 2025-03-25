@@ -16,8 +16,8 @@ export class Product {
     readonly createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-    readonly updatedAt: Date;
+    readonly updatedAt?: Date;
 
     @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz' })
-    deletedAt: Date;
+    deletedAt?: Date;
 }

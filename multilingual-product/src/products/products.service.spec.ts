@@ -12,24 +12,13 @@ describe('ProductsService', () => {
     let service: ProductsService;
     let repository: Repository<Product>;
 
-    const mockRepository = {
-        save: jest.fn(),
-        createQueryBuilder: jest.fn().mockReturnValue({
-            leftJoinAndSelect: jest.fn().mockReturnThis(),
-            where: jest.fn().mockReturnThis(),
-            skip: jest.fn().mockReturnThis(),
-            take: jest.fn().mockReturnThis(),
-            getManyAndCount: jest.fn(),
-        }),
-    };
-
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 ProductsService,
                 {
                     provide: getRepositoryToken(Product),
-                    useValue: mockRepository,
+                    useClass: Repository,
                 },
             ],
         }).compile();
@@ -74,16 +63,41 @@ describe('ProductsService', () => {
                 limit: 10,
             };
 
-            const mockProducts = [{ id: 1, name: 'Laptop', description: 'A good laptop' }];
-            mockRepository.createQueryBuilder().getManyAndCount.mockResolvedValue([mockProducts, 1]);
+            const thTranslation = {
+                id: uuidv4(),
+                languageCode: LanguageCode.TH,
+                name: 'สินค้าเทสต์',
+                description: 'รายละเอียด',
+            };
+            const mockSearchedProducts = {
+                id: uuidv4(),
+                sku: 'SKU-999',
+                createdAt: new Date(),
+                translations: [
+                    {
+                        id: uuidv4(),
+                        languageCode: LanguageCode.EN,
+                        name: 'Laptop',
+                        description: 'A good laptop',
+                    },
+                ],
+            };
+            const mockProducts: Product[] = [mockSearchedProducts];
+            jest.spyOn(repository, 'findAndCount').mockResolvedValue([mockProducts, 1]);
+            jest.spyOn(repository, 'find').mockResolvedValue([
+                { ...mockSearchedProducts, translations: [...mockSearchedProducts.translations, thTranslation] },
+            ]);
 
             const result = await service.searchProducts(searchParams);
 
-            expect(result).toEqual({ totalData: mockProducts, totalCount: 1 });
+            expect(result).toEqual({
+                totalData: [{ ...mockSearchedProducts, translations: [...mockSearchedProducts.translations, thTranslation] }],
+                totalCount: 1,
+            });
         });
 
         it('should return empty results when no products are found', async () => {
-            mockRepository.createQueryBuilder().getManyAndCount.mockResolvedValue([[], 0]);
+            jest.spyOn(repository, 'findAndCount').mockResolvedValue([[], 0]);
             const result = await service.searchProducts({ search: 'xyz', page: 1, limit: 10 });
 
             expect(result).toEqual({ totalData: [], totalCount: 0 });

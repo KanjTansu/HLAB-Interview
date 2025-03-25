@@ -18,5 +18,5 @@ export class ProductTranslation {
 
     @ManyToOne(() => Product, (product) => product.translations, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
-    product: Product;
+    product?: Product;
 }

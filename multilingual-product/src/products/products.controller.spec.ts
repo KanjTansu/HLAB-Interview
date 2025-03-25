@@ -5,8 +5,9 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { LanguageCode } from './enums/language.enum';
 import { Product } from './entities/product.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { BadRequestException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { ListProductDto } from './dto/list-product.dto';
+import { validate } from 'class-validator';
 
 describe('ProductsController', () => {
     let controller: ProductsController;
@@ -31,7 +32,6 @@ describe('ProductsController', () => {
 
     describe('createProduct', () => {
         it('create => should create a new product by a given data', async () => {
-            // arrange
             const productDto: CreateProductDto = {
                 sku: 'SKU-999',
                 translations: [
@@ -51,10 +51,8 @@ describe('ProductsController', () => {
             const mockCreatedProduct = { id: uuidv4(), ...productDto, createdAt: new Date() } as Product;
             jest.spyOn(mockProductsService, 'createProduct').mockReturnValue(mockCreatedProduct);
 
-            // act
             const result = await controller.createProduct(productDto);
 
-            // assert
             expect(mockProductsService.createProduct).toHaveBeenCalled();
             expect(mockProductsService.createProduct).toHaveBeenCalledWith(productDto);
 
@@ -74,7 +72,31 @@ describe('ProductsController', () => {
             };
 
             const productDtoInstance = plainToInstance(CreateProductDto, productDto);
-            expect(async () => await controller.createProduct(productDtoInstance)).toThrow(BadRequestException);
+            const errors = await validate(productDtoInstance);
+            expect(errors.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('Search Products', () => {
+        it('list => should list product by searching and return with pagination format', async () => {
+            // arrange
+            const searchParams: ListProductDto = {
+                search: 'laptop',
+                page: 1,
+                limit: 10,
+            };
+
+            const mockProducts = [{ id: 1, name: 'Laptop', description: 'A good laptop' }];
+            jest.spyOn(mockProductsService, 'searchProducts').mockReturnValue({ totalData: mockProducts, totalCount: 1 });
+
+            // act
+            const result = await controller.searchProducts(searchParams);
+
+            // assert
+            expect(mockProductsService.searchProducts).toHaveBeenCalled();
+            expect(mockProductsService.searchProducts).toHaveBeenCalledWith(searchParams);
+
+            expect(result).toEqual({ totalData: mockProducts, totalCount: 1 });
         });
     });
 });
