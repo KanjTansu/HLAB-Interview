@@ -55,7 +55,7 @@ describe('ProductsController', () => {
             const productSearched = await controller.searchProducts({ search: 'test', page: 1, limit: 1 });
             expect(productSearched.totalData.find((product) => product.sku === 'SKU-999')).toBeTruthy();
 
-            await controller.deleteTestProduct(productDto.sku);
+            // await controller.deleteTestProduct(productDto.sku);
         });
     });
 });

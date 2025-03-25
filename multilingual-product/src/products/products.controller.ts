@@ -18,8 +18,4 @@ export class ProductsController {
     searchProducts(@Query() searchProductDTO: ListProductDto): Promise<ListResponse<Product[]>> {
         return this.productsService.searchProducts(searchProductDTO);
     }
-
-    deleteTestProduct(sku: string) {
-        return this.productsService.deleteProduct(sku);
-    }
 }
