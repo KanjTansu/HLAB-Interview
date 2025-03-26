@@ -10,6 +10,33 @@ Use for HLAB Pre-Assessment only
 
 - Use Asynchronous Event-Driven Aggregation by using microservices transport such as Redis Pub/Sub
 
+## 2. How would you recommend you for a performance test strategy plan proceeding to the project manager?
+
+### Answer
+
+1. Define Performance Testing Goals
+
+   - Ensure the NestJS backend can handle expected concurrent users.
+   - Measure API response times under different loads.
+   - Evaluate the impact of authentication and authorization processes.
+
+2. Identify Key Performance Metrics
+   - Response Time: API should respond within X ms under normal and peak loads.
+   - Throughput: Number of requests the system can handle per second.
+   - Error Rate: Percentage of failed requests under load.
+3. Define Performance Test Types
+   - Load Testing: Simulate normal and peak traffic to measure response times and system stability.
+   - Page Load Time: Optimize initial render speed using Lighthouse/WebPageTest.
+   - Rendering Performance: Use React DevTools to measure component rendering time.
+   - Network Performance: Analyze API call efficiency and minimize redundant requests.
+4. Define Testing Tools
+   - Backend (NestJS)
+     - Postman – API response time and functional performance testing.
+   - Frontend (React)
+     - Chrome DevTools – Analyzing network requests and rendering performance.
+5. Define Testing Environment
+   - Use a staging environment that mirrors production.
+
 ## 3. Design and develop two APIs using NestJS and Postgres:
 
 ### Answer
